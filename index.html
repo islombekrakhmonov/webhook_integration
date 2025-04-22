@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Webhook Integration Example - Golang (Gin)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem auto;
+      max-width: 800px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #333;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    pre {
+      background: #f8f8f8;
+      padding: 1rem;
+      overflow-x: auto;
+      border-radius: 6px;
+    }
+    .note {
+      background: #fff8c6;
+      padding: 1rem;
+      border-left: 4px solid #ffc107;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Webhook Integration Example (Go + Gin)</h1>
+
+  <p>This page describes how to implement a webhook endpoint in Go using the <strong>Gin</strong> framework.</p>
+
+  <h2>🔧 Webhook Requirements</h2>
+  <ul>
+    <li>Webhook must accept a <strong>POST</strong> request</li>
+    <li>Request body will be sent in <strong>JSON</strong> format</li>
+    <li>Webhook must immediately return <code>200 OK</code></li>
+    <li>Endpoint must be served over <strong>HTTPS</strong></li>
+  </ul>
+
+  <div class="note">
+    <strong>Example use case:</strong><br>
+    When a flight is delayed, our system will send a POST request with the current flight status to your webhook URL.
+  </div>
+
+  <h2>📦 Example Payload</h2>
+  <pre><code>{
+  "flight_number": "AZ123",
+  "status": "delayed",
+  "delay_reason": "technical issue",
+  "expected_departure": "2025-04-18T14:30:00Z"
+}</code></pre>
+
+  <h2>🧑‍💻 Gin Webhook Example (Go)</h2>
+  <p>Create a file like <code>main.go</code> and use the following code:</p>
+
+  <pre><code>package main
+
+import (
+  "net/http"
+  "github.com/gin-gonic/gin"
+)
+
+func main() {
+  r := gin.Default()
+
+  r.POST("/webhook", func(c *gin.Context) {
+    var payload map[string]interface{}
+
+    if err := c.ShouldBindJSON(&payload); err != nil {
+      c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+      return
+    }
+
+    // Log or handle the webhook payload as needed
+    // fmt.Println("Received webhook:", payload)
+
+    // Always respond with 200 OK
+    c.Status(http.StatusOK)
+  })
+
+  // Run on HTTPS in production (replace with cert and key files)
+  // In development, you can run with HTTP
+  r.Run(":8080")
+}
+</code></pre>
+
+  <h2>🚀 Deployment Tips</h2>
+  <ul>
+    <li>Use <strong>HTTPS</strong> with a valid TLS certificate (e.g., using a reverse proxy like Nginx, or platforms like Vercel, Render, Fly.io)</li>
+    <li>Make sure your firewall or cloud provider allows incoming POST requests</li>
+    <li>Validate the payload if needed for extra security</li>
+  </ul>
+
+  <footer style="margin-top: 3rem; font-size: 0.9em; color: #888;">
+    © 2025 EasyToTravel Webhooks Example Page
+  </footer>
+</body>
+</html>
