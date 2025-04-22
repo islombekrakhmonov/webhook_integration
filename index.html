@@ -3,16 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Webhook Integration Example - Golang (Gin)</title>
+  <title>Webhook Integration – Golang (Gin)</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 960px;
       margin: 2rem auto;
-      max-width: 800px;
+      padding: 0 1rem;
       line-height: 1.6;
-    }
-    h1 {
       color: #333;
+    }
+    h1, h2 {
+      color: #2c3e50;
     }
     code {
       background-color: #f4f4f4;
@@ -25,84 +27,625 @@
       padding: 1rem;
       overflow-x: auto;
       border-radius: 6px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
     }
     .note {
-      background: #fff8c6;
+      background: #fff3cd;
       padding: 1rem;
-      border-left: 4px solid #ffc107;
-      margin-top: 1rem;
+      border-left: 5px solid #ffc107;
+      margin: 1rem 0;
+    }
+    footer {
+      margin-top: 3rem;
+      font-size: 0.85rem;
+      color: #777;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <h1>Webhook Integration Example (Go + Gin)</h1>
+  <h1>Webhook Integration Guide (Golang + Gin)</h1>
 
-  <p>This page describes how to implement a webhook endpoint in Go using the <strong>Gin</strong> framework.</p>
+  <p>This page provides a reference for implementing a webhook endpoint in Go using the Gin framework.</p>
 
-  <h2>🔧 Webhook Requirements</h2>
+  <h2>📌 Webhook Requirements</h2>
   <ul>
-    <li>Webhook must accept a <strong>POST</strong> request</li>
-    <li>Request body will be sent in <strong>JSON</strong> format</li>
-    <li>Webhook must immediately return <code>200 OK</code></li>
-    <li>Endpoint must be served over <strong>HTTPS</strong></li>
+    <li>Accepts <strong>POST</strong> requests</li>
+    <li>Expects a <strong>JSON</strong> body based on the <code>FinalResponseOrder</code> struct</li>
+    <li>Must return an immediate <code>200 OK</code> response</li>
+    <li>Must be served over <strong>HTTPS</strong></li>
   </ul>
 
   <div class="note">
-    <strong>Example use case:</strong><br>
-    When a flight is delayed, our system will send a POST request with the current flight status to your webhook URL.
+    When a flight is delayed, we will send a JSON payload to your webhook URL. The payload includes full order and product data.
   </div>
 
-  <h2>📦 Example Payload</h2>
+  <h2>📦 Sample Payload</h2>
+  <p>This is an example of what your webhook will receive:</p>
+
   <pre><code>{
-  "flight_number": "AZ123",
-  "status": "delayed",
-  "delay_reason": "technical issue",
-  "expected_departure": "2025-04-18T14:30:00Z"
+    {
+      "orderId": "ZZaqvbv2",
+      "orderItems": [
+          {
+              "flightNumber": "BA998",
+              "variantId": "DPV-000000245",
+              "paxType": "child",
+              "firstName": "Anabel",
+              "lastName": "Smith",
+              "date": "2025-04-20",
+              "email": "islombek.rakhmonov@easyto.travel",
+              "currency": "EUR",
+              "agencyId": "",
+              "id": "FJfzdcbZ",
+              "refundLatestDate": "2025-04-19T18:40:00Z",
+              "couponCode": "DETTN3SOFQMAN",
+              "status": "not_used",
+              "airport": {
+                  "iata": "LHR",
+                  "timezone": "Europe/London",
+                  "city": {
+                      "iata": "LON",
+                      "title": "London",
+                      "titleLocalized": {
+                          "EN": "London",
+                          "DE": "London",
+                          "RU": "Лондон",
+                          "TR": "Londra"
+                      },
+                      "country": {
+                          "id": "GB",
+                          "title": "United Kingdom",
+                          "titleLocalized": {
+                              "EN": "United Kingdom",
+                              "DE": "United Kingdom",
+                              "RU": "Соединенное Королевство",
+                              "TR": "United Kingdom"
+                          }
+                      }
+                  },
+                  "country": {
+                      "id": "GB",
+                      "title": "United Kingdom",
+                      "titleLocalized": {
+                          "EN": "United Kingdom",
+                          "DE": "United Kingdom",
+                          "RU": "Соединенное Королевство",
+                          "TR": "United Kingdom"
+                      }
+                  },
+                  "title": "Heathrow",
+                  "terminals": [
+                      {
+                          "id": "a0c59b33-b4e3-48c3-bb71-ac2f427aef13",
+                          "title": "Terminal 5"
+                      },
+                      {
+                          "id": "da5988a1-688c-4d52-80fd-2acdcfb52b68",
+                          "title": "Terminal 4"
+                      },
+                      {
+                          "id": "5f6cdfef-bee2-46f5-9c44-c1a5c4d29e03",
+                          "title": "Terminal 2"
+                      }
+                  ],
+                  "location": {
+                      "latitude": 51.469604,
+                      "longitude": -0.453566
+                  },
+                  "titleLocalized": {
+                      "EN": "Heathrow",
+                      "DE": "London Heathrow",
+                      "RU": "Хитроу",
+                      "TR": "Heathrow Havalimanı"
+                  }
+              },
+              "product": {
+                  "airline": {
+                      "code": "BA",
+                      "name": "British Airways"
+                  },
+                  "arrivalAirport": {
+                      "city": {
+                          "country": {
+                              "id": "DE",
+                              "title": "Germany",
+                              "titleLocalized": {
+                                  "DE": "Deutschland",
+                                  "EN": "Germany",
+                                  "RU": "Германия",
+                                  "TR": "Germany"
+                              }
+                          },
+                          "iata": "BER",
+                          "title": "Berlin",
+                          "titleLocalized": {
+                              "DE": "Berlin",
+                              "EN": "Berlin",
+                              "RU": "Берлин",
+                              "TR": "Berlin"
+                          }
+                      },
+                      "country": {
+                          "id": "DE",
+                          "title": "Germany",
+                          "titleLocalized": {
+                              "DE": "Deutschland",
+                              "EN": "Germany",
+                              "RU": "Германия",
+                              "TR": "Germany"
+                          }
+                      },
+                      "iata": "BER",
+                      "location": {
+                          "latitude": 52.366667,
+                          "longitude": 13.503333
+                      },
+                      "terminals": [
+                          {
+                              "id": "bcb34e5a-1325-4c39-898e-1f0417f42d3d",
+                              "title": "Terminal A"
+                          },
+                          {
+                              "id": "7f9bdbee-b5be-4892-8950-e260e6f7ed41",
+                              "title": "Terminal 1"
+                          }
+                      ],
+                      "timezone": "Europe/Berlin",
+                      "timezone_offset": "02:00",
+                      "title": "Berlin Brandenburg Airport",
+                      "titleLocalized": {
+                          "DE": "Berlin Brandenburg „Willy Brandt“",
+                          "EN": "Berlin Brandenburg Airport",
+                          "RU": "Берлин-Бранденбург",
+                          "TR": "Berlin Brandenburg Havaalanı \"Willy Brandt\""
+                      }
+                  },
+                  "arrivalTerminal": {
+                      "id": "7f9bdbee-b5be-4892-8950-e260e6f7ed41",
+                      "title": "Terminal 1"
+                  },
+                  "arrivalTime": "2025-04-20T20:35:00Z",
+                  "category": "delay-care",
+                  "departureAirport": {
+                      "city": {
+                          "country": {
+                              "id": "GB",
+                              "title": "United Kingdom",
+                              "titleLocalized": {
+                                  "DE": "United Kingdom",
+                                  "EN": "United Kingdom",
+                                  "RU": "Соединенное Королевство",
+                                  "TR": "United Kingdom"
+                              }
+                          },
+                          "iata": "LON",
+                          "title": "London",
+                          "titleLocalized": {
+                              "DE": "London",
+                              "EN": "London",
+                              "RU": "Лондон",
+                              "TR": "Londra"
+                          }
+                      },
+                      "country": {
+                          "id": "GB",
+                          "title": "United Kingdom",
+                          "titleLocalized": {
+                              "DE": "United Kingdom",
+                              "EN": "United Kingdom",
+                              "RU": "Соединенное Королевство",
+                              "TR": "United Kingdom"
+                          }
+                      },
+                      "iata": "LHR",
+                      "location": {
+                          "latitude": 51.469604,
+                          "longitude": -0.453566
+                      },
+                      "terminals": [
+                          {
+                              "id": "a0c59b33-b4e3-48c3-bb71-ac2f427aef13",
+                              "title": "Terminal 5"
+                          },
+                          {
+                              "id": "da5988a1-688c-4d52-80fd-2acdcfb52b68",
+                              "title": "Terminal 4"
+                          },
+                          {
+                              "id": "5f6cdfef-bee2-46f5-9c44-c1a5c4d29e03",
+                              "title": "Terminal 2"
+                          }
+                      ],
+                      "timezone": "Europe/London",
+                      "timezone_offset": "01:00",
+                      "title": "Heathrow",
+                      "titleLocalized": {
+                          "DE": "London Heathrow",
+                          "EN": "Heathrow",
+                          "RU": "Хитроу",
+                          "TR": "Heathrow Havalimanı"
+                      }
+                  },
+                  "departureTerminal": {
+                      "id": "a0c59b33-b4e3-48c3-bb71-ac2f427aef13",
+                      "title": "Terminal 5"
+                  },
+                  "departureTime": "2025-04-20T18:40:00Z",
+                  "duration": {
+                      "hours": 2,
+                      "minutes": 55
+                  },
+                  "flightNumber": "BA998",
+                  "hasDifferentTerminal": false,
+                  "id": "P-000000047",
+                  "status": "Scheduled",
+                  "terminal": {
+                      "id": "",
+                      "title": ""
+                  }
+              },
+              "productVariant": {
+                  "id": "DPV-000000245",
+                  "dataHash": "5e699a88791673d03cf4a4b5118fdae128f7922c49fdf5cf780c3bca87546df5",
+                  "refund": {
+                      "type": "day",
+                      "value": 1
+                  },
+                  "adultPrice": {
+                      "baseCurrency": "USD",
+                      "paxType": "adult",
+                      "grossPrice": 62.3,
+                      "netPrice": 56.1,
+                      "currencies": [
+                          {
+                              "currency": "AED",
+                              "rate": 3.673,
+                              "grossPrice": 228.83
+                          },
+                          {
+                              "currency": "AUD",
+                              "rate": 1.565172,
+                              "grossPrice": 97.51
+                          },
+                          {
+                              "currency": "BHD",
+                              "rate": 0.376892,
+                              "grossPrice": 23.48
+                          },
+                          {
+                              "currency": "CAD",
+                              "rate": 1.382715,
+                              "grossPrice": 86.14
+                          },
+                          {
+                              "currency": "CHF",
+                              "rate": 0.812618,
+                              "grossPrice": 50.63
+                          },
+                          {
+                              "currency": "CNY",
+                              "rate": 7.2958,
+                              "grossPrice": 454.53
+                          },
+                          {
+                              "currency": "DKK",
+                              "rate": 6.521529,
+                              "grossPrice": 406.29
+                          },
+                          {
+                              "currency": "EUR",
+                              "rate": 0.873466,
+                              "grossPrice": 55
+                          },
+                          {
+                              "currency": "GBP",
+                              "rate": 0.751121,
+                              "grossPrice": 46.79
+                          },
+                          {
+                              "currency": "JOD",
+                              "rate": 0.7094,
+                              "grossPrice": 44.2
+                          },
+                          {
+                              "currency": "JPY",
+                              "rate": 141.546512,
+                              "grossPrice": 8818.35
+                          },
+                          {
+                              "currency": "KWD",
+                              "rate": 0.306383,
+                              "grossPrice": 19.09
+                          },
+                          {
+                              "currency": "KZT",
+                              "rate": 522.526982,
+                              "grossPrice": 32553.43
+                          },
+                          {
+                              "currency": "NOK",
+                              "rate": 10.4506,
+                              "grossPrice": 651.07
+                          },
+                          {
+                              "currency": "OMR",
+                              "rate": 0.384753,
+                              "grossPrice": 23.97
+                          },
+                          {
+                              "currency": "RUB",
+                              "rate": 81.614788,
+                              "grossPrice": 5084.6
+                          },
+                          {
+                              "currency": "SEK",
+                              "rate": 9.5574,
+                              "grossPrice": 595.43
+                          },
+                          {
+                              "currency": "SGD",
+                              "rate": 1.307354,
+                              "grossPrice": 81.45
+                          },
+                          {
+                              "currency": "TRY",
+                              "rate": 38.115598,
+                              "grossPrice": 2374.6
+                          },
+                          {
+                              "currency": "UAH",
+                              "rate": 41.328799,
+                              "grossPrice": 2574.78
+                          },
+                          {
+                              "currency": "UZS",
+                              "rate": 12986.5,
+                              "grossPrice": 809058.95
+                          }
+                      ]
+                  },
+                  "childPrice": {
+                      "baseCurrency": "USD",
+                      "paxType": "child",
+                      "grossPrice": 62.3,
+                      "netPrice": 56.1,
+                      "currencies": [
+                          {
+                              "currency": "AED",
+                              "rate": 3.673,
+                              "grossPrice": 228.83
+                          },
+                          {
+                              "currency": "AUD",
+                              "rate": 1.565172,
+                              "grossPrice": 97.51
+                          },
+                          {
+                              "currency": "BHD",
+                              "rate": 0.376892,
+                              "grossPrice": 23.48
+                          },
+                          {
+                              "currency": "CAD",
+                              "rate": 1.382715,
+                              "grossPrice": 86.14
+                          },
+                          {
+                              "currency": "CHF",
+                              "rate": 0.812618,
+                              "grossPrice": 50.63
+                          },
+                          {
+                              "currency": "CNY",
+                              "rate": 7.2958,
+                              "grossPrice": 454.53
+                          },
+                          {
+                              "currency": "DKK",
+                              "rate": 6.521529,
+                              "grossPrice": 406.29
+                          },
+                          {
+                              "currency": "EUR",
+                              "rate": 0.873466,
+                              "grossPrice": 55
+                          },
+                          {
+                              "currency": "GBP",
+                              "rate": 0.751121,
+                              "grossPrice": 46.79
+                          },
+                          {
+                              "currency": "JOD",
+                              "rate": 0.7094,
+                              "grossPrice": 44.2
+                          },
+                          {
+                              "currency": "JPY",
+                              "rate": 141.546512,
+                              "grossPrice": 8818.35
+                          },
+                          {
+                              "currency": "KWD",
+                              "rate": 0.306383,
+                              "grossPrice": 19.09
+                          },
+                          {
+                              "currency": "KZT",
+                              "rate": 522.526982,
+                              "grossPrice": 32553.43
+                          },
+                          {
+                              "currency": "NOK",
+                              "rate": 10.4506,
+                              "grossPrice": 651.07
+                          },
+                          {
+                              "currency": "OMR",
+                              "rate": 0.384753,
+                              "grossPrice": 23.97
+                          },
+                          {
+                              "currency": "RUB",
+                              "rate": 81.614788,
+                              "grossPrice": 5084.6
+                          },
+                          {
+                              "currency": "SEK",
+                              "rate": 9.5574,
+                              "grossPrice": 595.43
+                          },
+                          {
+                              "currency": "SGD",
+                              "rate": 1.307354,
+                              "grossPrice": 81.45
+                          },
+                          {
+                              "currency": "TRY",
+                              "rate": 38.115598,
+                              "grossPrice": 2374.6
+                          },
+                          {
+                              "currency": "UAH",
+                              "rate": 41.328799,
+                              "grossPrice": 2574.78
+                          },
+                          {
+                              "currency": "UZS",
+                              "rate": 12986.5,
+                              "grossPrice": 809058.95
+                          }
+                      ]
+                  }
+              },
+              "supplierName": "ETT Supplier",
+              "statusUpdatedAt": "2025-04-16T06:17:08Z",
+              "isRefundable": false
+          },
+      ],
+      "email": "islombek.rakhmanov00@gmail.com"
 }</code></pre>
 
-  <h2>🧑‍💻 Gin Webhook Example (Go)</h2>
-  <p>Create a file like <code>main.go</code> and use the following code:</p>
+<h2>⚙️ Webhook Handler Example</h2>
 
-  <pre><code>package main
-
-import (
-  "net/http"
-  "github.com/gin-gonic/gin"
-)
-
-func main() {
-  r := gin.Default()
-
-  r.POST("/webhook", func(c *gin.Context) {
-    var payload map[string]interface{}
-
-    if err := c.ShouldBindJSON(&payload); err != nil {
-      c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
-      return
-    }
-
-    // Log or handle the webhook payload as needed
-    // fmt.Println("Received webhook:", payload)
-
-    // Always respond with 200 OK
-    c.Status(http.StatusOK)
-  })
-
-  // Run on HTTPS in production (replace with cert and key files)
-  // In development, you can run with HTTP
-  r.Run(":8080")
+<pre><code>r.POST("/webhook", func(c *gin.Context) {
+var payload FinalResponseOrder
+if err := c.ShouldBindJSON(&payload); err != nil {
+  c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+  return
 }
-</code></pre>
 
-  <h2>🚀 Deployment Tips</h2>
-  <ul>
-    <li>Use <strong>HTTPS</strong> with a valid TLS certificate (e.g., using a reverse proxy like Nginx, or platforms like Vercel, Render, Fly.io)</li>
-    <li>Make sure your firewall or cloud provider allows incoming POST requests</li>
-    <li>Validate the payload if needed for extra security</li>
-  </ul>
+// Handle order data
+c.Status(http.StatusOK)
+})</code></pre>
 
-  <footer style="margin-top: 3rem; font-size: 0.9em; color: #888;">
-    © 2025 EasyToTravel Webhooks Example Page
-  </footer>
+<h2>🧩 Go Models</h2>
+
+<pre><code>type FinalResponseOrder struct {
+OrderID       string       `json:"orderId"`
+Email         string       `json:"email"`
+TotalAmount   float64      `json:"totalAmount"`
+PaymentMethod string       `json:"paymentMethod"`
+Currency      string       `json:"currency"`
+Phone         string       `json:"phone"`
+OrderItems    []OrderItem  `json:"orderItems"`
+}
+
+type OrderItem struct {
+FlightNumber     string         `json:"flightNumber"`
+VariantID        string         `json:"variantId"`
+PaxType          string         `json:"paxType"`
+FirstName        string         `json:"firstName"`
+LastName         string         `json:"lastName"`
+Date             string         `json:"date"`
+Email            string         `json:"email"`
+Currency         string         `json:"currency"`
+Phone            string         `json:"phone"`
+AgencyID         string         `json:"agencyId"`
+PaxID            string         `json:"paxId"`
+ID               string         `json:"id"`
+RefundLatestDate string         `json:"refundLatestDate"`
+CouponCode       string         `json:"couponCode"`
+Status           string         `json:"status"`
+Airport          Airport        `json:"airport"`
+Product          Product        `json:"product"`
+ProductVariant   ProductVariant `json:"productVariant"`
+QRCode           string         `json:"qrCode"`
+SupplierName     string         `json:"supplierName"`
+StatusUpdatedAt  string         `json:"statusUpdatedAt"`
+IsRefundable     bool           `json:"isRefundable"`
+Index            int            `json:"index"`
+}
+
+type Airport struct {
+IATA           string            `json:"iata"`
+Timezone       string            `json:"timezone"`
+City           City              `json:"city"`
+Country        Country           `json:"country"`
+Title          string            `json:"title"`
+Terminals      []string          `json:"terminals"`
+Location       Location          `json:"location"`
+TitleLocalized map[string]string`json:"titleLocalized"`
+}
+
+type City struct {
+IATA    string  `json:"iata"`
+Title   string  `json:"title"`
+Country Country `json:"country"`
+}
+
+type Country struct {
+ID    string `json:"id"`
+Title string `json:"title"`
+}
+
+type Location struct {
+Latitude  float64 `json:"latitude"`
+Longitude float64 `json:"longitude"`
+}
+
+type Product struct {
+ID                string        `json:"id"`
+Category          string        `json:"category"`
+Title             string        `json:"title"`
+Description       string        `json:"description"`
+Timezone          string        `json:"timezone"`
+Photos            []string      `json:"photos"`
+WorkingTime       []string      `json:"workingTime"`
+UnavailablePeriods []string     `json:"unavailablePeriods"`
+Restrictions      []string      `json:"restrictions"`
+Features          []string      `json:"features"`
+TerminalType      []string      `json:"terminalType"`
+Address           string        `json:"address"`
+Info              map[string]interface{} `json:"info"`
+GateType          string        `json:"gateType"`
+Variants          []ProductVariant       `json:"variants"`
+}
+
+type ProductVariant struct {
+ID         string       `json:"id"`
+DataHash   string       `json:"dataHash"`
+Type       string       `json:"type"`
+Value      float64      `json:"value"`
+Refund     RefundPolicy `json:"refund"`
+AdultPrice PaxPrice     `json:"adultPrice"`
+ChildPrice PaxPrice     `json:"childPrice"`
+}
+
+type RefundPolicy struct {
+Type  string  `json:"type"`
+Value float64 `json:"value"`
+}
+
+type PaxPrice struct {
+PaxType   string  `json:"paxType"`
+GrossPrice float64 `json:"grossPrice"`
+}</code></pre>
+
+<footer>
+  &copy; 2025 EasyToTravel – Webhook Docs Page
+</footer>
 </body>
 </html>
