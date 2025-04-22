@@ -61,21 +61,36 @@
     When a flight is delayed, we will send a JSON payload to your webhook URL. The payload includes full order and product data.
   </div>
 
+  <h2>⚙️ Webhook Handler Example</h2>
+
+<pre><code>r.POST("/webhook", func(c *gin.Context) {
+var payload FinalResponseOrder
+if err := c.ShouldBindJSON(&payload); err != nil {
+  c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+  return
+}
+
+// Handle order data
+c.Status(http.StatusOK)
+})</code></pre>
+
+
+
   <h2>📦 Sample Payload</h2>
   <p>This is an example of what your webhook will receive:</p>
 
   <pre><code>{
     {
-      "orderId": "ZZaqvbv2",
+      "orderId": "aBvH52dg",
       "orderItems": [
           {
               "flightNumber": "BA998",
-              "variantId": "DPV-000000245",
+              "variantId": "DPV-000000001",
               "paxType": "child",
-              "firstName": "Anabel",
-              "lastName": "Smith",
+              "firstName": "John",
+              "lastName": "Doe",
               "date": "2025-04-20",
-              "email": "islombek.rakhmonov@easyto.travel",
+              "email": "sampleemailaddress@domain.com",
               "currency": "EUR",
               "agencyId": "",
               "id": "FJfzdcbZ",
@@ -125,10 +140,6 @@
                           "id": "da5988a1-688c-4d52-80fd-2acdcfb52b68",
                           "title": "Terminal 4"
                       },
-                      {
-                          "id": "5f6cdfef-bee2-46f5-9c44-c1a5c4d29e03",
-                          "title": "Terminal 2"
-                      }
                   ],
                   "location": {
                       "latitude": 51.469604,
@@ -279,16 +290,16 @@
                   },
                   "flightNumber": "BA998",
                   "hasDifferentTerminal": false,
-                  "id": "P-000000047",
-                  "status": "Scheduled",
+                  "id": "P-000000002",
+                  "status": "Delayed",
                   "terminal": {
                       "id": "",
                       "title": ""
                   }
               },
               "productVariant": {
-                  "id": "DPV-000000245",
-                  "dataHash": "5e699a88791673d03cf4a4b5118fdae128f7922c49fdf5cf780c3bca87546df5",
+                  "id": "DPV-000000001",
+                  "dataHash": "5e699a88791673d03cf4a4b5118fdae128f7922c49fdf5cf780c3bca87546df4",
                   "refund": {
                       "type": "day",
                       "value": 1
@@ -520,132 +531,17 @@
                       ]
                   }
               },
-              "supplierName": "ETT Supplier",
+              "supplierName": "SupplierName",
               "statusUpdatedAt": "2025-04-16T06:17:08Z",
               "isRefundable": false
           },
       ],
-      "email": "islombek.rakhmanov00@gmail.com"
+      "email": "sampleemailaddress@domain.com"
 }</code></pre>
 
-<h2>⚙️ Webhook Handler Example</h2>
-
-<pre><code>r.POST("/webhook", func(c *gin.Context) {
-var payload FinalResponseOrder
-if err := c.ShouldBindJSON(&payload); err != nil {
-  c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
-  return
-}
-
-// Handle order data
-c.Status(http.StatusOK)
-})</code></pre>
-
-<h2>🧩 Go Models</h2>
-
-<pre><code>type FinalResponseOrder struct {
-OrderID       string       `json:"orderId"`
-Email         string       `json:"email"`
-TotalAmount   float64      `json:"totalAmount"`
-PaymentMethod string       `json:"paymentMethod"`
-Currency      string       `json:"currency"`
-Phone         string       `json:"phone"`
-OrderItems    []OrderItem  `json:"orderItems"`
-}
-
-type OrderItem struct {
-FlightNumber     string         `json:"flightNumber"`
-VariantID        string         `json:"variantId"`
-PaxType          string         `json:"paxType"`
-FirstName        string         `json:"firstName"`
-LastName         string         `json:"lastName"`
-Date             string         `json:"date"`
-Email            string         `json:"email"`
-Currency         string         `json:"currency"`
-Phone            string         `json:"phone"`
-AgencyID         string         `json:"agencyId"`
-PaxID            string         `json:"paxId"`
-ID               string         `json:"id"`
-RefundLatestDate string         `json:"refundLatestDate"`
-CouponCode       string         `json:"couponCode"`
-Status           string         `json:"status"`
-Airport          Airport        `json:"airport"`
-Product          Product        `json:"product"`
-ProductVariant   ProductVariant `json:"productVariant"`
-QRCode           string         `json:"qrCode"`
-SupplierName     string         `json:"supplierName"`
-StatusUpdatedAt  string         `json:"statusUpdatedAt"`
-IsRefundable     bool           `json:"isRefundable"`
-Index            int            `json:"index"`
-}
-
-type Airport struct {
-IATA           string            `json:"iata"`
-Timezone       string            `json:"timezone"`
-City           City              `json:"city"`
-Country        Country           `json:"country"`
-Title          string            `json:"title"`
-Terminals      []string          `json:"terminals"`
-Location       Location          `json:"location"`
-TitleLocalized map[string]string`json:"titleLocalized"`
-}
-
-type City struct {
-IATA    string  `json:"iata"`
-Title   string  `json:"title"`
-Country Country `json:"country"`
-}
-
-type Country struct {
-ID    string `json:"id"`
-Title string `json:"title"`
-}
-
-type Location struct {
-Latitude  float64 `json:"latitude"`
-Longitude float64 `json:"longitude"`
-}
-
-type Product struct {
-ID                string        `json:"id"`
-Category          string        `json:"category"`
-Title             string        `json:"title"`
-Description       string        `json:"description"`
-Timezone          string        `json:"timezone"`
-Photos            []string      `json:"photos"`
-WorkingTime       []string      `json:"workingTime"`
-UnavailablePeriods []string     `json:"unavailablePeriods"`
-Restrictions      []string      `json:"restrictions"`
-Features          []string      `json:"features"`
-TerminalType      []string      `json:"terminalType"`
-Address           string        `json:"address"`
-Info              map[string]interface{} `json:"info"`
-GateType          string        `json:"gateType"`
-Variants          []ProductVariant       `json:"variants"`
-}
-
-type ProductVariant struct {
-ID         string       `json:"id"`
-DataHash   string       `json:"dataHash"`
-Type       string       `json:"type"`
-Value      float64      `json:"value"`
-Refund     RefundPolicy `json:"refund"`
-AdultPrice PaxPrice     `json:"adultPrice"`
-ChildPrice PaxPrice     `json:"childPrice"`
-}
-
-type RefundPolicy struct {
-Type  string  `json:"type"`
-Value float64 `json:"value"`
-}
-
-type PaxPrice struct {
-PaxType   string  `json:"paxType"`
-GrossPrice float64 `json:"grossPrice"`
-}</code></pre>
 
 <footer>
-  &copy; 2025 EasyToTravel – Webhook Docs Page
+  &copy; 2025 easy to travel – Webhook Docs Page
 </footer>
 </body>
 </html>
